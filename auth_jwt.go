@@ -29,6 +29,9 @@ type GinJWTMiddleware struct {
 	// Optional, default is HS256.
 	SigningAlgorithm string
 
+	// Optional, sets the 'kid' header on the token
+	Kid string
+
 	// Secret key used for signing. Required.
 	Key []byte
 
@@ -443,6 +446,9 @@ func (mw *GinJWTMiddleware) LoginHandler(c *gin.Context) {
 
 	// Create the token
 	token := jwt.New(jwt.GetSigningMethod(mw.SigningAlgorithm))
+	if mw.Kid != "" {
+		token.Header["kid"] = mw.Kid
+	}
 	claims := token.Claims.(jwt.MapClaims)
 
 	if mw.PayloadFunc != nil {
@@ -539,6 +545,9 @@ func (mw *GinJWTMiddleware) RefreshToken(c *gin.Context) (string, time.Time, err
 
 	// Create the token
 	newToken := jwt.New(jwt.GetSigningMethod(mw.SigningAlgorithm))
+	if mw.Kid != "" {
+		newToken.Header["kid"] = mw.Kid
+	}
 	newClaims := newToken.Claims.(jwt.MapClaims)
 
 	for key := range claims {
@@ -607,6 +616,9 @@ func (mw *GinJWTMiddleware) CheckIfTokenExpire(c *gin.Context) (jwt.MapClaims, e
 // TokenGenerator method that clients can use to get a jwt token.
 func (mw *GinJWTMiddleware) TokenGenerator(data interface{}) (string, time.Time, error) {
 	token := jwt.New(jwt.GetSigningMethod(mw.SigningAlgorithm))
+	if mw.Kid != "" {
+		token.Header["kid"] = mw.Kid
+	}
 	claims := token.Claims.(jwt.MapClaims)
 
 	if mw.PayloadFunc != nil {
